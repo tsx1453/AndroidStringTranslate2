@@ -3,7 +3,7 @@ package com.zhangyue.translate;
 /**
  * Created by zy on 2019/3/21.
  */
-public interface Itranslate {
+public interface ITranslate {
     /**
      * 默认的转换方式  中文简体  to  英文
      * @param src

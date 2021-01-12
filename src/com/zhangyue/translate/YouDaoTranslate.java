@@ -21,42 +21,35 @@ import java.util.*;
  * 有道翻译帮助类
  * https://ai.youdao.com/docs/doc-trans-api.s#p10
  */
-public class YouDaoTranslate implements Itranslate{
+public class YouDaoTranslate implements ITranslate {
 
 
     private static final String YOUDAO_URL = "http://openapi.youdao.com/api";
 
-    private static final String APP_KEY = "***";
-
-    private static final String APP_SECRET = "***";
-
-
-
     @Override
     public String translate(String src) {
-        return translateInner(src,"zh-CHS","EN");
+        return translateInner(src, "zh-CHS", "EN");
     }
 
     @Override
     public String translate(String src, String from, String to) {
-        return translateInner(src,from,to);
+        return translateInner(src, from, to);
     }
 
-    private String translateInner(String src,String from,String to){
-        Map<String,String> params = new HashMap<String,String>();
+    private String translateInner(String src, String from, String to) {
+        Map<String, String> params = new HashMap<String, String>();
         String salt = String.valueOf(System.currentTimeMillis());
         params.put("from", from);
         params.put("to", to);
         params.put("signType", "v3");
         String curtime = String.valueOf(System.currentTimeMillis() / 1000);
         params.put("curtime", curtime);
-        String signStr = APP_KEY + truncate(src) + salt + curtime + APP_SECRET;
+        String signStr = Constants.YOUDAO_KEY + truncate(src) + salt + curtime + Constants.YOUDAO_SECRET;
         String sign = getDigest(signStr);
-        params.put("appKey", APP_KEY);
+        params.put("appKey", Constants.YOUDAO_KEY);
         params.put("q", src);
         params.put("salt", salt);
         params.put("sign", sign);
-        /** 处理结果 */
         String result = "translate fail";
         try {
             result = requestForHttp(YOUDAO_URL, params);
@@ -67,7 +60,7 @@ public class YouDaoTranslate implements Itranslate{
     }
 
 
-    public static String requestForHttp(String url,Map<String,String> params) throws IOException {
+    public static String requestForHttp(String url, Map<String, String> params) throws IOException {
 
         /** 创建HttpClient */
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -75,30 +68,31 @@ public class YouDaoTranslate implements Itranslate{
         /** httpPost */
         HttpPost httpPost = new HttpPost(url);
         List<NameValuePair> paramsList = new ArrayList<NameValuePair>();
-        Iterator<Map.Entry<String,String>> it = params.entrySet().iterator();
-        while(it.hasNext()){
-            Map.Entry<String,String> en = it.next();
+        Iterator<Map.Entry<String, String>> it = params.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> en = it.next();
             String key = en.getKey();
             String value = en.getValue();
-            paramsList.add(new BasicNameValuePair(key,value));
+            paramsList.add(new BasicNameValuePair(key, value));
         }
-        httpPost.setEntity(new UrlEncodedFormEntity(paramsList,"UTF-8"));
+        httpPost.setEntity(new UrlEncodedFormEntity(paramsList, "UTF-8"));
         CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
-        try{
+        try {
             Header[] contentType = httpResponse.getHeaders("Content-Type");
-            System.out.println("Content-Type:" + contentType[0].getValue());;
+            System.out.println("Content-Type:" + contentType[0].getValue());
+            ;
             HttpEntity httpEntity = httpResponse.getEntity();
-            String json = EntityUtils.toString(httpEntity,"UTF-8");
+            String json = EntityUtils.toString(httpEntity, "UTF-8");
             EntityUtils.consume(httpEntity);
             System.out.println(json);
             JSONObject jsonObject = JSONObject.parseObject(json);
             return jsonObject.getJSONArray("translation").getString(0);
-        }finally {
-            try{
-                if(httpResponse!=null){
+        } finally {
+            try {
+                if (httpResponse != null) {
                     httpResponse.close();
                 }
-            }catch(IOException e){
+            } catch (IOException e) {
                 System.out.println("## release resouce error ##" + e);
             }
         }
@@ -131,21 +125,21 @@ public class YouDaoTranslate implements Itranslate{
     }
 
     /**
-     *
      * @param result 音频字节流
-     * @param file 存储路径
+     * @param file   存储路径
      */
     private static void byte2File(byte[] result, String file) {
         File audioFile = new File(file);
         FileOutputStream fos = null;
-        try{
+        try {
             fos = new FileOutputStream(audioFile);
             fos.write(result);
 
-        }catch (Exception e){
-            System.out.println(e.toString());;
-        }finally {
-            if(fos != null){
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            ;
+        } finally {
+            if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {

@@ -1,0 +1,4 @@
+*.iml
+src/res/result*
+out/
+src/com/zhangyue/translate/Constants.java
